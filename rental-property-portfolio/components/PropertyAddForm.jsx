@@ -4,8 +4,8 @@ import { toast } from 'react-toastify';
 const PropertyAddForm = () => {
 
   const handleImageChange = (e) => {
-    // NOTE: Code here has changed to limit user to 4 images
-    // as per the instructions to the user
+    // NOTE: Code to limit user to 4 images
+    // per the instructions to the user
     if (e.target.files.length > 4) {
       e.target.value = '';
       toast.error('You can select up to 4 images in total.');
