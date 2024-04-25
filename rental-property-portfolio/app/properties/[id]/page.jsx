@@ -5,6 +5,7 @@ import { fetchProperty } from "@/utilis/requests";
 import {FaArrowLeft} from 'react-icons/fa';
 import PropertyHeaderImage from "@/components/PropertyHeaderImage";
 import PropertyDetails from "@/components/PropertyDetails";
+import PropertyImages from "@/components/PropertyImages";
 import Link from "next/link";
 import Spinner from "@/components/Spinner";
 
@@ -150,6 +151,7 @@ const PropertyPage = () => {
               </div>
             </div>
           </section>
+          <PropertyImages images={property.images} />
         </>
       )}
     </>
