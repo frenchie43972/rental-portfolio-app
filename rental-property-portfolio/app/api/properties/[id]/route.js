@@ -49,12 +49,12 @@ export const DELETE = async (request, {params}) => {
       return parts.at(-1).split('.').at(0);
     });
  
-    // Delete images from Cloudinary
-    if (publicIds.length > 0) {
-      for (let publicId of publicIds) {
-        await cloudinary.uploader.destroy('propertypulse/' + publicId);
-      }
-    }
+    // Delete images from Cloudinary NOTE, this code affects deletions (throws error)
+    // if (publicIds.length > 0) {
+    //   for (let publicId of publicIds) {
+    //     await cloudinary.uploader.destroy('propertypulse/' + publicId);
+    //   }
+    // }
 
     await property.deleteOne();
 
@@ -62,5 +62,75 @@ export const DELETE = async (request, {params}) => {
   } catch (error) {
     console.log(error);
     return new Response('Something went Wrong', {status: 500});
+  }
+};
+
+// PUT /api/properties/:id
+export const PUT = async (request, {params}) => {
+  try {
+    await connectDB();
+
+    const sessionUser = await getSessionUser();
+
+    if (!sessionUser || !sessionUser.userId) {
+      return new Response('User ID Required', {status: 401});
+    }
+
+    const {id} = params;
+    const {userId} = sessionUser;
+   
+    const formData = await request.formData();
+
+    // Access all values from amenities and images
+    const amenities = formData.getAll('amenities');
+
+    // Get the property to update and verify the property exists
+    const existingProperty = await Property.findById(id);
+    if (!existingProperty) {
+      return new Response('Property doe not exit', {status: 404});
+    }
+
+    // Verifying the ownership of the property
+    if (existingProperty.owner.toString() !== userId) {
+      return new Response('Unauthorized', {status: 401});
+    }
+
+    // Create property data object for the DB
+    const propertyData = {
+      type: formData.get('type'),
+      name: formData.get('name'),
+      description: formData.get('description'),
+      location: {
+        street: formData.get('location.street'),
+        city: formData.get('location.city'),
+        state: formData.get('location.state'),
+        zipcode: formData.get('location.zipcode'),
+      },
+      beds: formData.get('beds'),
+      baths: formData.get('baths'),
+      square_feet: formData.get('square_feet'),
+      amenities,
+      rates: {
+        weekly: formData.get('rates.weekly'),
+        monthly: formData.get('rates.monthly'),
+        nightly: formData.get('rates.nightly'),
+      },
+      seller_info: {
+        name: formData.get('seller_info.name'),
+        email: formData.get('seller_info.email'),
+        phone: formData.get('seller_info.phone'),
+      },
+      owner: userId,
+    };
+    
+    // Updates the property in the DB
+    const updatedProperty = await Property.findByIdAndUpdate(id, propertyData);
+
+    // return Response.redirect(`${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`);
+
+    return new Response(JSON.stringify(updatedProperty), {status: 200});
+  } catch (error) {
+    console.error(error)
+    return new Response('Failed to add property', {status: 500});
   }
 };

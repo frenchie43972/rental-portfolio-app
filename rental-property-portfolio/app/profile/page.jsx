@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import profileDefault from '@/assets/images/profile.png';
 import Spinner from "@/components/Spinner";
+import { toast } from "react-toastify";
 
 const ProfilePage = () => {
   const {data: session} = useSession();
@@ -53,12 +54,15 @@ const ProfilePage = () => {
         // Remove the listing (property) from state
         const updatedProperties = properties.filter((property) => property._id !== propertyId);
 
-        console.log(updatedProperties);
+        setProperties(updatedProperties);
+
+        toast.success('Listing Deleted.');
       } else {
-        alert('Failed to delete listing');
+        toast.error('Failed to delete listing');
       }
     } catch (error) {
       console.log(error);
+      toast.error('Failed to delete listing');
     }
   };
 
